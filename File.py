@@ -1,9 +1,9 @@
 import socket
 import sys
-
-sock = socket.socket()
+from threading import Thread
 
 def wait_messange():
+    sock = socket.socket()
     sock.bind(('', int(sys.argv[1]))) #Настройка сокета на конкретный порт
     sock.listen(2) # Максимальное количество соединений на сервере
     conn, addr = sock.accept() # Принимает данные пользователя (Отправителя)
@@ -13,19 +13,19 @@ def wait_messange():
     data = conn.recv(1024) # Устанавливает ограничения на сообщения по размерам
     print(data.decode('utf-8')) #
     conn.close() # Закрывает это говно
+    sock.close()
 
 def send_messange():
-    sock.connect(('localhost', int(sys.argv[2]))) #Соединение с сервером
+    sock2 = socket.socket()
+    sock2.connect(('localhost', int(sys.argv[2]))) #Соединение с сервером
     output = input()
-    sock.sendall(output.encode('utf-8')) #Запрашивает сообщение у пользователя и отправляет его на сервер
+    sock2.sendall(output.encode('utf-8')) #Запрашивает сообщение у пользователя и отправляет его на сервер
+    sock2.close()
 
+variable = Thread(target=wait_messange, args=())
+variable2 = Thread(target=send_messange, args=())
 
-
-if sys.argv[3] == 'True':
-    wait_messange()
-    send_messange()
-else:
-    send_messange()
-    wait_messange()
-
-sock.close() # Закрывает соединение
+variable.start()
+variable2.start()
+variable.join()
+variable2.join()
